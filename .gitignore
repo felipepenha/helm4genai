@@ -1,2 +1,23 @@
 private
-.terraform*
+
+# OS X
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+
+# Generated keys/secrets
+helm4genai-cluster-config

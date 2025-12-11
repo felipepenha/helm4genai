@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: localhost/mcp/server
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}

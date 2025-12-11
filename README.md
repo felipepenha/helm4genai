@@ -27,10 +27,16 @@ make minimal
 ```
 Then open [http://localhost:8000](http://localhost:8000).
 
+To deploy the GenAI stack (vLLM, Langfuse, MCP) and the **Robots Agent**:
+```bash
+make robots
+```
+Then open [http://localhost:7860](http://localhost:7860).
+
 ### Manual Steps
 
 ### 1. Initialize Infrastructure
-To provision the local Kubernetes cluster (Kind) and install KubeVela:
+To provision the local Kubernetes cluster (Kind) and install KubeVela (plus vLLM, Langfuse, MCP):
 
 ```bash
 make up
@@ -40,25 +46,50 @@ make up
 To deploy the minimal example application:
 
 ```bash
-make deploy-minimal
+make deploy APP=minimal
+```
+
+To deploy the **Robots Agent** (GenAI Example):
+
+```bash
+make deploy APP=robots
 ```
 
 ### 3. Verification
 You can verify the components using the following commands:
 
 ```bash
-make verify-cluster  # Check Kind cluster status
-make verify-vela     # Check KubeVela installation
-make verify-app      # Check application status
+make verify-cluster       # Check Kind cluster status
+make verify-vela          # Check KubeVela installation
+make verify-app APP=minimal # Check minimal app status
+make verify-app APP=robots  # Check robots app status
 ```
 
 ### 4. Access Application
-To access the application locally:
+To access the minimal application locally:
 
 ```bash
-make forward
+make serve APP=minimal
 ```
-Then open [http://localhost:8000](http://localhost:8000) in your browser.
+Then open [http://localhost:8000](http://localhost:8000).
+
+To access the **Robots Agent**:
+
+```bash
+make serve APP=robots
+```
+Then open [http://localhost:7860](http://localhost:7860).
+
+### Monitor via Langfuse
+To access the Langfuse dashboard:
+```bash
+make serve-langfuse
+```
+Then open [http://localhost:3000](http://localhost:3000).
+Default credentials (if unchanged): `admin` / `admin`.
+
+> [!TIP]
+> The `serve-*` commands (app, robots, langfuse) will block your terminal. Open a **new terminal tab or window** to run `make serve-langfuse` while your application is running in another.
 
 ### 5. Cleanup
 To destroy the cluster and resources:

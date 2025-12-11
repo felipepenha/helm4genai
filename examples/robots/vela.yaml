@@ -1,0 +1,17 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: robots-app
+spec:
+  components:
+    - name: robots-app
+      type: webservice
+      properties:
+        image: localhost/robots-app:latest
+        imagePullPolicy: IfNotPresent # Use local image
+        ports:
+         - port: 7860
+           expose: true
+        env:
+         - name: MCP_SERVER_URL
+           value: "http://mcp-mcp-server.genai.svc.cluster.local:8080" # Service name is 'mcp-mcp-server' in 'genai' namespace

@@ -8,6 +8,7 @@ spec:
       type: webservice
       properties:
         image: oamdev/hello-world
+        imagePullPolicy: IfNotPresent
         ports:
          - port: 8000
            expose: true
