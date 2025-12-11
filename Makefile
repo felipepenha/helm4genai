@@ -1,4 +1,4 @@
-.PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images
+.PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images validate
 
 TERRAFORM_DIR := terraform/environments/local
 CONTAINER_RUNTIME ?= podman
@@ -29,6 +29,9 @@ help:
 	@echo "  langfuse             Forward port to the Langfuse dashboard."
 	@echo "  minimal              Full pipeline for examples/minimal deployment and serving."
 	@echo "  robots               Full pipeline for examples/robots deployment and serving."
+	@echo "  minimal              Full pipeline for examples/minimal deployment and serving."
+	@echo "  robots               Full pipeline for examples/robots deployment and serving."
+	@echo "  validate             Validate Terraform configuration."
 	@echo "  clean                Alias for down."
 	@echo ""
 	@echo "Environment:"
@@ -39,6 +42,10 @@ help:
 down:
 	@echo "Destroying infrastructure..."
 	export KIND_EXPERIMENTAL_PROVIDER=podman && cd $(TERRAFORM_DIR) && terraform init && terraform destroy -auto-approve
+
+validate:
+	@echo "Validating Terraform configuration..."
+	cd $(TERRAFORM_DIR) && terraform init -backend=false && terraform validate
 
 up:
 	@echo "Initializing and applying Terraform..."
@@ -86,13 +93,13 @@ langfuse:
 	@echo "Credentials: admin / admin (or as configured in Terraform)"
 	kubectl port-forward -n genai service/langfuse-web 3000:3000
 
-minimal: down up
+minimal: down validate up
 	$(MAKE) deploy APP=minimal
 	$(MAKE) verify-vela
 	$(MAKE) verify-app APP=minimal
 	$(MAKE) serve APP=minimal
 
-robots: down up
+robots: down validate up
 	$(MAKE) deploy APP=robots
 	$(MAKE) verify-vela
 	$(MAKE) verify-app APP=robots

@@ -14,3 +14,26 @@ variable "zone" {
   type        = string
   default     = "us-central1-a"
 }
+
+variable "langfuse_nextauth_url" {
+  description = "The NextAuth URL for Langfuse"
+  type        = string
+}
+
+variable "langfuse_nextauth_secret" {
+  description = "The NextAuth secret for Langfuse"
+  type        = string
+  sensitive   = true
+}
+
+variable "langfuse_salt" {
+  description = "The salt for Langfuse"
+  type        = string
+  sensitive   = true
+}
+
+variable "langfuse_db_password" {
+  description = "The database password for Langfuse"
+  type        = string
+  sensitive   = true
+}

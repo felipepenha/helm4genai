@@ -33,27 +33,27 @@ resource "helm_release" "langfuse" {
     yamlencode({
       langfuse = {
         salt = {
-          value = "super-secret-salt-value-change-me"
+          value = var.langfuse_salt
         }
         nextauth = {
           secret = {
-            value = "super-secret-nextauth-secret"
+            value = var.langfuse_nextauth_secret
           }
           url = {
-            value = "http://localhost:3000" # Dummy value for local
+            value = var.langfuse_nextauth_url
           }
         }
       }
       postgresql = {
         auth = {
-          password = "postgres-password"
-          postgresPassword = "postgres-password"
+          password = var.langfuse_db_password
+          postgresPassword = var.langfuse_db_password
         }
       }
       clickhouse = {
         auth = {
-          password      = "clickhouse-password"
-          adminPassword = "clickhouse-password"
+          password      = var.langfuse_db_password
+          adminPassword = var.langfuse_db_password
         }
       }
     })

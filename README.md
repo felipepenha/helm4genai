@@ -123,6 +123,34 @@ This project uses a modular Terraform architecture to separate local development
 - **`terraform/environments/local`**: Configuration for running locally with Kind.
 - **`terraform/environments/prod`**: (Skeleton) Configuration for a production cloud environment.
 
+## Production Configuration
+
+For production deployments (using `terraform/environments/prod`), you must provide sensitive configuration values.
+
+### Required Variables
+- `langfuse_nextauth_url`: The public URL for Langfuse (e.g., `https://langfuse.yourdoman.com`).
+- `langfuse_nextauth_secret`: A secure random string for NextAuth.
+- `langfuse_salt`: A secure random string for encryption.
+- `langfuse_db_password`: Password for the Postgres/Clickhouse database.
+
+### Setting Variables
+Create a `prod.tfvars` file or use environment variables:
+
+```hcl
+# prod.tfvars
+langfuse_nextauth_url    = "https://langfuse.example.com"
+langfuse_nextauth_secret = "your-secure-secret"
+langfuse_salt            = "your-secure-salt"
+langfuse_db_password     = "your-secure-db-password"
+```
+
+To validate the production configuration:
+```bash
+cd terraform/environments/prod
+terraform init
+terraform validate
+```
+
 ## Troubleshooting
 
 ### Podman

@@ -66,7 +66,12 @@ module "platform" {
   source = "../../modules/platform"
   
   # High Availability for Production
-  vela_replica_count = 3
+  vela_replica_count       = 3
+  genai_enabled            = true
+  langfuse_nextauth_url    = var.langfuse_nextauth_url
+  langfuse_nextauth_secret = var.langfuse_nextauth_secret
+  langfuse_salt            = var.langfuse_salt
+  langfuse_db_password     = var.langfuse_db_password
   
   depends_on = [module.gke]
 }
