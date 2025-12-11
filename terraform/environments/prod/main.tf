@@ -74,4 +74,16 @@ module "platform" {
   langfuse_db_password     = var.langfuse_db_password
   
   depends_on = [module.gke]
+
+  # Production/HA Configuration
+  clickhouse_replica_count        = 3
+  clickhouse_background_pool_size = 512 # Default value
+  clickhouse_resources = {
+    limits = {
+      memory = "12Gi"
+    }
+    requests = {
+      memory = "4Gi"
+    }
+  }
 }

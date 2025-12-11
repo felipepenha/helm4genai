@@ -83,13 +83,13 @@ Then open [http://localhost:7860](http://localhost:7860).
 ### Monitor via Langfuse
 To access the Langfuse dashboard:
 ```bash
-make serve-langfuse
+make langfuse
 ```
 Then open [http://localhost:3000](http://localhost:3000).
-Default credentials (if unchanged): `admin` / `admin`.
+Required credentials: **Sign up** for a new account on your local instance.
 
 > [!TIP]
-> The `serve-*` commands (app, robots, langfuse) will block your terminal. Open a **new terminal tab or window** to run `make serve-langfuse` while your application is running in another.
+> The `serve-*` commands (app, robots, langfuse) will block your terminal. Open a **new terminal tab or window** to run `make langfuse` while your application is running in another.
 
 ### 5. Cleanup
 To destroy the cluster and resources:

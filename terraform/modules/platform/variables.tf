@@ -31,8 +31,40 @@ variable "langfuse_salt" {
 }
 
 variable "langfuse_db_password" {
-  description = "The database password for Langfuse (Postgres and Clickhouse)"
+  description = "Password for the Postgres/Clickhouse database"
   type        = string
-  default     = "postgres-password"
   sensitive   = true
+  default     = "postgres-password"
+}
+
+variable "clickhouse_replica_count" {
+  description = "Number of Clickhouse replicas"
+  type        = number
+  default     = 1
+}
+
+variable "clickhouse_resources" {
+  description = "Resource limits and requests for Clickhouse"
+  type = object({
+    limits = object({
+      memory = string
+    })
+    requests = object({
+      memory = string
+    })
+  })
+  default = {
+    limits = {
+      memory = "4Gi"
+    }
+    requests = {
+      memory = "512Mi"
+    }
+  }
+}
+
+variable "clickhouse_background_pool_size" {
+  description = "Size of the Clickhouse background schedule pool"
+  type        = number
+  default     = 16
 }

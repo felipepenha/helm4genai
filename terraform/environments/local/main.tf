@@ -55,6 +55,7 @@ resource "null_resource" "load_images" {
       load_image "docker.io/oamdev/cluster-gateway:v1.9.0-alpha.2"
       load_image "docker.io/oamdev/kube-webhook-certgen:v2.4.1"
       load_image "docker.io/oamdev/hello-world:latest"
+      load_image "docker.io/bitnamilegacy/clickhouse:25.2.1-debian-12-r0"
     EOT
   }
 }
@@ -68,4 +69,16 @@ module "platform" {
   # Example of passing variables
   vela_replica_count = 1
   genai_enabled      = true
+
+  # Lightweight configuration for local development
+  clickhouse_replica_count        = 1
+  clickhouse_background_pool_size = 16
+  clickhouse_resources = {
+    limits = {
+      memory = "4Gi"
+    }
+    requests = {
+      memory = "512Mi"
+    }
+  }
 }

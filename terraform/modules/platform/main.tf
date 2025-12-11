@@ -39,9 +39,7 @@ resource "helm_release" "langfuse" {
           secret = {
             value = var.langfuse_nextauth_secret
           }
-          url = {
-            value = var.langfuse_nextauth_url
-          }
+          url = var.langfuse_nextauth_url
         }
       }
       postgresql = {
@@ -55,6 +53,15 @@ resource "helm_release" "langfuse" {
           password      = var.langfuse_db_password
           adminPassword = var.langfuse_db_password
         }
+        replicaCount = var.clickhouse_replica_count
+        files = {
+          "config-custom.xml" = <<EOF
+<clickhouse>
+    <background_schedule_pool_size>${var.clickhouse_background_pool_size}</background_schedule_pool_size>
+</clickhouse>
+EOF
+        }
+        resources = var.clickhouse_resources
       }
     })
   ]
