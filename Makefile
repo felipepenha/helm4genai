@@ -1,4 +1,4 @@
-.PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images validate
+.PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images validate init-ollama
 
 TERRAFORM_DIR := terraform/environments/local
 CONTAINER_RUNTIME ?= podman
@@ -19,25 +19,39 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  help                 Display this help message."
-	@echo "  up                   Initialize and apply Terraform to spin up the cluster."
 	@echo "  down                 Destroy the infrastructure."
+	@echo "  validate             Validate Terraform configuration."
+	@echo "  up                   Initialize and apply Terraform to spin up the cluster."
+	@echo "  init-ollama          Initialize Ollama by pulling the required model."
 	@echo "  deploy               Deploy an application. Requires APP parameter."
-	@echo "  verify-app           Verify an application deployment. Requires APP parameter."
-	@echo "  serve                Forward port to the application. Requires APP parameter."
+	@echo "  build-images         Build and load container images for robots app."
 	@echo "  verify-cluster       Verify the Kind cluster is running."
 	@echo "  verify-vela          Verify Vela system pods are running."
+	@echo "  verify-app           Verify an application deployment. Requires APP parameter."
+	@echo "  serve                Forward port to the application. Requires APP parameter."
 	@echo "  langfuse             Forward port to the Langfuse dashboard."
-	@echo "  minimal              Full pipeline for examples/minimal deployment and serving."
-	@echo "  robots               Full pipeline for examples/robots deployment and serving."
-	@echo "  minimal              Full pipeline for examples/minimal deployment and serving."
-	@echo "  robots               Full pipeline for examples/robots deployment and serving."
-	@echo "  validate             Validate Terraform configuration."
 	@echo "  clean                Alias for down."
 	@echo ""
 	@echo "Environment:"
 	@echo "  - Terraform Directory: $(TERRAFORM_DIR)"
 	@echo ""
 	@echo "Example: make deploy APP=minimal"
+
+minimal:
+	@echo "Deploying and serving minimal app..."
+	$(MAKE) up
+	$(MAKE) deploy APP=minimal
+	$(MAKE) verify-app APP=minimal
+	$(MAKE) serve APP=minimal
+
+robots:
+	@echo "Deploying and serving robots app..."
+	$(MAKE) up
+	$(MAKE) deploy APP=robots
+	$(MAKE) verify-app APP=robots
+	$(MAKE) serve APP=robots
+
+clean: down
 
 down:
 	@echo "Destroying infrastructure..."
@@ -50,6 +64,14 @@ validate:
 up:
 	@echo "Initializing and applying Terraform..."
 	export KIND_EXPERIMENTAL_PROVIDER=podman && cd $(TERRAFORM_DIR) && terraform init && terraform apply -auto-approve
+
+# Initialize Ollama by pulling the required model
+init-ollama:
+	@echo "Initializing Ollama..."
+	@echo "Waiting for vLLM (Ollama) pod to be ready..."
+	@kubectl wait --for=condition=ready pod -l app=vllm -n genai --timeout=300s
+	@echo "Checking if model tinyllama exists..."
+	@kubectl exec -n genai deployment/vllm -- /bin/sh -c "ollama list | grep -q 'tinyllama' && echo 'Model exists, skipping pull.' || (echo 'Model not found or update needed, pulling...' && ollama pull tinyllama)"
 
 deploy:
 	@echo "Deploying $(APP) application..."
@@ -99,10 +121,47 @@ minimal: down validate up
 	$(MAKE) verify-app APP=minimal
 	$(MAKE) serve APP=minimal
 
-robots: down validate up
+robots: down validate
+	$(MAKE) up
+	$(MAKE) init-ollama
 	$(MAKE) deploy APP=robots
 	$(MAKE) verify-vela
 	$(MAKE) verify-app APP=robots
 	$(MAKE) serve APP=robots
+
+# Monitoring & Debugging
+status:
+	@echo "=== Cluster Nodes ==="
+	@kubectl get nodes
+	@echo ""
+	@echo "=== All Pods ==="
+	@kubectl get pods -A
+	@echo ""
+	@echo "=== All Services ==="
+	@kubectl get svc -A
+	@echo ""
+	@echo "=== Helm Releases ==="
+	@helm list -A
+
+watch:
+	@echo "Watching All Pods..."
+	@kubectl get pods -A --watch
+
+events:
+	@echo "=== Recent Cluster Events ==="
+	@kubectl get events --sort-by=.metadata.creationTimestamp
+
+logs:
+	@echo "Fetching logs for $(APP) (last 50 lines)..."
+	@kubectl logs -l app.oam.dev/name=$(APP_NAME_$(APP)) --all-containers=true --tail=50 -f
+
+describe:
+	@echo "Describing pods for $(APP)..."
+	@kubectl describe pods -l app.oam.dev/name=$(APP_NAME_$(APP))
+
+# Debugging helper to run an ephemeral debug pod
+debug-pod:
+	@echo "Launching ephemeral debug pod (curl/netshoot)..."
+	@kubectl run debug-$(shell date +%s) --rm -i --tty --image nicolaka/netshoot -- /bin/bash
 
 clean: down

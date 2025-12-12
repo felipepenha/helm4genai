@@ -86,4 +86,29 @@ module "platform" {
       memory = "4Gi"
     }
   }
+
+  # Production vLLM Configuration
+  vllm_image             = "vllm/vllm-openai:latest"
+  vllm_image_pull_policy = "IfNotPresent"
+  vllm_env = {
+    VLLM_TARGET_DEVICE = "gpu"
+  }
+  # Assuming GPU nodes are available in prod for 120b model
+  vllm_args = [
+    "--model", "gpt-oss:120b",
+    "--max-model-len", "4096",
+    "--tensor-parallel-size", "2"
+  ]
+  vllm_resources = {
+    limits = {
+      memory = "64Gi"
+      cpu    = "8"
+      "nvidia.com/gpu" = "2"
+    }
+    requests = {
+      memory = "32Gi"
+      cpu    = "4"
+      "nvidia.com/gpu" = "2"
+    }
+  }
 }

@@ -52,6 +52,6 @@ class MCPHandler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), MCPHandler) as httpd:
-        print(f"Serving MCP Mock on port {PORT}")
+    with socketserver.TCPServer(("0.0.0.0", PORT), MCPHandler) as httpd:
+        print(f"Serving MCP Mock on port {PORT}", flush=True)
         httpd.serve_forever()

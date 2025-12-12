@@ -81,4 +81,22 @@ module "platform" {
       memory = "512Mi"
     }
   }
+
+  # Local Ollama Configuration
+  vllm_image             = "ollama/ollama:latest"
+  vllm_image_pull_policy = "IfNotPresent"
+  vllm_env = {
+    OLLAMA_HOST = "0.0.0.0:8000"
+  }
+  vllm_args = ["serve"]
+  vllm_resources = {
+    limits = {
+      memory = "4Gi"
+      cpu    = "2"
+    }
+    requests = {
+      memory = "2Gi"
+      cpu    = "1"
+    }
+  }
 }

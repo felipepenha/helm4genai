@@ -68,14 +68,7 @@ EOF
   wait = false
 }
 
-# resource "helm_release" "vllm" {
-#   count            = var.genai_enabled ? 1 : 0
-#   name             = "vllm"
-#   repository       = "https://vllm-project.github.io/production-stack/" # Example, might need adjustment
-#   chart            = "vllm"
-#   namespace        = "genai"
-#   create_namespace = true
-# }
+
 
 resource "helm_release" "mcp" {
   count            = var.genai_enabled ? 1 : 0

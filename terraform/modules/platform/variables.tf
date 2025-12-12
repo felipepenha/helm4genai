@@ -68,3 +68,52 @@ variable "clickhouse_background_pool_size" {
   type        = number
   default     = 16
 }
+
+# vLLM Configuration Variables
+variable "vllm_image" {
+  description = "The vLLM image to use"
+  type        = string
+  default     = "vllm/vllm-openai:latest"
+}
+
+variable "vllm_image_pull_policy" {
+  description = "Image pull policy for vLLM"
+  type        = string
+  default     = "IfNotPresent"
+}
+
+variable "vllm_args" {
+  description = "Arguments for the vLLM container"
+  type        = list(string)
+  default     = []
+}
+
+variable "vllm_env" {
+  description = "Environment variables for vLLM"
+  type        = map(string)
+  default     = {}
+}
+
+variable "vllm_resources" {
+  description = "Resource limits and requests for vLLM"
+  type = object({
+    limits = object({
+      memory = string
+      cpu    = string
+    })
+    requests = object({
+      memory = string
+      cpu    = string
+    })
+  })
+  default = {
+    limits = {
+      memory = "4Gi"
+      cpu    = "2"
+    }
+    requests = {
+      memory = "2Gi"
+      cpu    = "1"
+    }
+  }
+}

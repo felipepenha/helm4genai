@@ -98,6 +98,18 @@ To destroy the cluster and resources:
 make down
 ```
 
+### 6. Monitoring & Debugging
+The Makefile provides several helpers to check the status of your cluster and applications:
+
+```bash
+make status                   # Overview of Nodes, Pods, Services, and Helm releases
+make watch                    # Watch pods in real-time
+make events                   # Show recent cluster events
+make logs APP=robots          # Follow logs for a specific app
+make describe APP=robots      # Describe pods for troubleshooting
+make debug-pod                # Launch an ephemeral pod with network tools (curl, dig, etc.)
+```
+
 ## Architecture
 
 The project follows a flow where the Developer uses the Makefile to orchestrate Terraform, which in turn provisions the K8s cluster and installs KubeVela via Helm.

@@ -1,4 +1,4 @@
-private
+# private
 
 # OS X
 .DS_Store
@@ -21,3 +21,6 @@ venv/
 
 # Generated keys/secrets
 helm4genai-cluster-config
+
+# tar files
+*.tar
