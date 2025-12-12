@@ -18,6 +18,7 @@ venv/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+*.tfvars
 
 # Generated keys/secrets
 helm4genai-cluster-config

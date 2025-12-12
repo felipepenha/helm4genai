@@ -19,14 +19,12 @@ variable "langfuse_nextauth_url" {
 variable "langfuse_nextauth_secret" {
   description = "The NextAuth secret for Langfuse"
   type        = string
-  default     = "super-secret-nextauth-secret"
   sensitive   = true
 }
 
 variable "langfuse_salt" {
   description = "The salt for Langfuse"
   type        = string
-  default     = "super-secret-salt-value-change-me"
   sensitive   = true
 }
 
@@ -34,7 +32,6 @@ variable "langfuse_db_password" {
   description = "Password for the Postgres/Clickhouse database"
   type        = string
   sensitive   = true
-  default     = "postgres-password"
 }
 
 variable "clickhouse_replica_count" {
@@ -116,4 +113,16 @@ variable "vllm_resources" {
       cpu    = "1"
     }
   }
+}
+
+variable "mcp_image_repository" {
+  description = "The repository for the MCP server image"
+  type        = string
+  default     = ""
+}
+
+variable "mcp_image_tag" {
+  description = "The tag for the MCP server image"
+  type        = string
+  default     = ""
 }

@@ -37,3 +37,15 @@ variable "langfuse_db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "mcp_image_repository" {
+  description = "The repository for the MCP server image"
+  type        = string
+  default     = ""
+}
+
+variable "mcp_image_tag" {
+  description = "The tag for the MCP server image"
+  type        = string
+  default     = ""
+}

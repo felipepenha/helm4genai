@@ -1,61 +1,18 @@
 .PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images validate init-ollama
 
 TERRAFORM_DIR := terraform/environments/local
+TERRAFORM_PROD_DIR := terraform/environments/prod
 CONTAINER_RUNTIME ?= podman
 
-# App Configuration
-APP_NAME_minimal := minimal-app
-SERVICE_minimal := express-server
-PORT_minimal := 8000
-YAML_minimal := examples/minimal/vela.yaml
-
-APP_NAME_robots := robots-app
-SERVICE_robots := robots-app
-PORT_robots := 7860
-YAML_robots := examples/robots/vela.yaml
-
-help:
-	@echo "Usage: make <target> [APP=minimal|robots]"
-	@echo ""
-	@echo "Available targets:"
-	@echo "  help                 Display this help message."
-	@echo "  down                 Destroy the infrastructure."
-	@echo "  validate             Validate Terraform configuration."
-	@echo "  up                   Initialize and apply Terraform to spin up the cluster."
-	@echo "  init-ollama          Initialize Ollama by pulling the required model."
-	@echo "  deploy               Deploy an application. Requires APP parameter."
-	@echo "  build-images         Build and load container images for robots app."
-	@echo "  verify-cluster       Verify the Kind cluster is running."
-	@echo "  verify-vela          Verify Vela system pods are running."
-	@echo "  verify-app           Verify an application deployment. Requires APP parameter."
-	@echo "  serve                Forward port to the application. Requires APP parameter."
-	@echo "  langfuse             Forward port to the Langfuse dashboard."
-	@echo "  clean                Alias for down."
-	@echo ""
-	@echo "Environment:"
-	@echo "  - Terraform Directory: $(TERRAFORM_DIR)"
-	@echo ""
-	@echo "Example: make deploy APP=minimal"
-
-minimal:
-	@echo "Deploying and serving minimal app..."
-	$(MAKE) up
-	$(MAKE) deploy APP=minimal
-	$(MAKE) verify-app APP=minimal
-	$(MAKE) serve APP=minimal
-
-robots:
-	@echo "Deploying and serving robots app..."
-	$(MAKE) up
-	$(MAKE) deploy APP=robots
-	$(MAKE) verify-app APP=robots
-	$(MAKE) serve APP=robots
-
-clean: down
+# ... (omitted)
 
 down:
 	@echo "Destroying infrastructure..."
 	export KIND_EXPERIMENTAL_PROVIDER=podman && cd $(TERRAFORM_DIR) && terraform init && terraform destroy -auto-approve
+
+down-prod:
+	@echo "Destroying production infrastructure..."
+	cd $(TERRAFORM_PROD_DIR) && terraform init && terraform destroy -auto-approve
 
 validate:
 	@echo "Validating Terraform configuration..."

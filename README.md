@@ -8,6 +8,7 @@ Helm4GenAI is a boilerplate project designed to simplify the deployment of Gener
 - **Helm**
 - **Kind**
 - **Podman**
+- **Google Cloud SDK (`gcloud`)**
 
 ### Installation Guide
 
@@ -135,9 +136,37 @@ This project uses a modular Terraform architecture to separate local development
 - **`terraform/environments/local`**: Configuration for running locally with Kind.
 - **`terraform/environments/prod`**: (Skeleton) Configuration for a production cloud environment.
 
-## Production Configuration
+For production deployments (using `terraform/environments/prod`), you **MUST** provide sensitive configuration values via `terraform.tfvars` or environment variables, as default values have been removed for security.
 
-For production deployments (using `terraform/environments/prod`), you must provide sensitive configuration values.
+
+## GCP Deployment Guide
+
+This guide details the steps to deploy the solution to Google Cloud Platform (GKE).
+
+### 1. Prerequisites
+Ensure you have the Google Cloud SDK installed and authenticated:
+```bash
+# Verify installation
+gcloud --version
+
+# Login to Google Cloud
+gcloud auth login
+gcloud auth application-default login
+
+# Install auth plugin for kubectl
+gcloud components install gke-gcloud-auth-plugin
+```
+
+### 2. Project Setup
+1.  Create or select a Google Cloud Project.
+2.  Enable the following APIs:
+    *   Compute Engine API
+    *   Kubernetes Engine API
+    *   Artifact Registry API
+
+```bash
+gcloud services enable compute.googleapis.com container.googleapis.com artifactregistry.googleapis.com --project your-gcp-project-id
+```
 
 ### Required Variables
 - `langfuse_nextauth_url`: The public URL for Langfuse (e.g., `https://langfuse.yourdoman.com`).
@@ -161,6 +190,61 @@ To validate the production configuration:
 cd terraform/environments/prod
 terraform init
 terraform validate
+```
+
+### 3. Infrastructure Provisioning (Terraform)
+Navigate to the production environment directory and initialize Terraform:
+
+```bash
+cd terraform/environments/prod
+terraform init
+```
+
+Create a `terraform.tfvars` file with your specific configuration (Project ID, Region, etc.):
+
+```hcl
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+zone       = "us-central1-a"
+# Add other required variables
+```
+
+Apply the configuration to create the GKE cluster:
+
+```bash
+terraform apply
+```
+
+### 4. Deploy Application
+After Terraform completes, configure `kubectl` to connect to your new GKE cluster:
+
+```bash
+gcloud container clusters get-credentials helm4genai-prod --region us-central1 --project your-gcp-project-id
+```
+
+Deploy the Robots application:
+
+```bash
+# Ensure you are in the root directory
+cd ../../..
+make deploy APP=robots
+```
+
+**Note**: For production, you will likely need to build and push container images to Google Artifact Registry (GAR) instead of loading them into Kind. The current `make build-images` target is optimized for local Kind development.
+
+### 5. Verification
+Check the status of your GKE nodes and pods:
+
+```bash
+kubectl get nodes
+kubectl get pods -n genai
+```
+
+### 6. Cleanup
+To destroy the GCP resources (and avoid costs):
+
+```bash
+make down-prod
 ```
 
 ## Troubleshooting

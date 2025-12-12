@@ -69,6 +69,12 @@ resource "kubernetes_deployment" "vllm" {
             medium = "Memory"
           }
         }
+
+        toleration {
+          key      = "nvidia.com/gpu"
+          operator = "Exists"
+          effect   = "NoSchedule"
+        }
       }
     }
   }
