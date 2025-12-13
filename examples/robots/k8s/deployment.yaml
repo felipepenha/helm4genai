@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: robots-app
+  labels:
+    app: robots-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: robots-app
+  template:
+    metadata:
+      labels:
+        app: robots-app
+    spec:
+      containers:
+      - name: robots-app
+        image: localhost/robots-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 7860
+        env:
+        - name: MCP_SERVER_URL
+          value: "http://mcp-mcp-server.genai.svc.cluster.local:8080"

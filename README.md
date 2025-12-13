@@ -1,6 +1,6 @@
 # Helm4GenAI
 
-Helm4GenAI is a boilerplate project designed to simplify the deployment of Generative AI applications using Helm and KubeVela on Kubernetes. It provides a structured foundation for spinning up local clusters and deploying applications.
+Helm4GenAI is a boilerplate project designed to simplify the deployment of Generative AI applications on Kubernetes. It provides a structured foundation for spinning up local clusters (Kind) or deploying to production (GKE/Terraform), managing the GenAI stack (vLLM, MCP), and deploying applications using standard Kubernetes manifests.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ Then open [http://localhost:7860](http://localhost:7860).
 ### Manual Steps
 
 ### 1. Initialize Infrastructure
-To provision the local Kubernetes cluster (Kind) and install KubeVela (plus vLLM, Langfuse, MCP):
+To provision the local Kubernetes cluster (Kind) and install the platform stack (vLLM, MCP):
 
 ```bash
 make up
@@ -61,7 +61,6 @@ You can verify the components using the following commands:
 
 ```bash
 make verify-cluster       # Check Kind cluster status
-make verify-vela          # Check KubeVela installation
 make verify-app APP=minimal # Check minimal app status
 make verify-app APP=robots  # Check robots app status
 ```
@@ -81,13 +80,7 @@ make serve APP=robots
 ```
 Then open [http://localhost:7860](http://localhost:7860).
 
-### Monitor via Langfuse
-To access the Langfuse dashboard:
-```bash
-make langfuse
-```
-Then open [http://localhost:3000](http://localhost:3000).
-Required credentials: **Sign up** for a new account on your local instance.
+
 
 > [!TIP]
 > The `serve-*` commands (app, robots, langfuse) will block your terminal. Open a **new terminal tab or window** to run `make langfuse` while your application is running in another.
@@ -121,10 +114,10 @@ graph LR
     
     Makefile -->|Invokes| Terraform
     Terraform -->|Provisions| K8s[K8s Cluster]
-    Terraform -->|Installs| Vela["KubeVela (Helm)"]
+    Terraform -->|Installs| Platform["Platform Stack (vLLM, MCP)"]
     
-    K8s -.->|Hosts| Vela
-    Vela -->|Manages| App[Containerized App]
+    K8s -.->|Hosts| Platform
+    Developer -->|Deploys| App[Application]
     K8s -.->|Hosts| App
 ```
 
@@ -132,11 +125,9 @@ graph LR
 
 This project uses a modular Terraform architecture to separate local development from production configurations:
 
-- **`terraform/modules/platform`**: Contains the core logic (KubeVela installation) shared across environments.
+- **`terraform/modules/platform`**: Contains the core logic (Platform stack) shared across environments.
 - **`terraform/environments/local`**: Configuration for running locally with Kind.
 - **`terraform/environments/prod`**: (Skeleton) Configuration for a production cloud environment.
-
-For production deployments (using `terraform/environments/prod`), you **MUST** provide sensitive configuration values via `terraform.tfvars` or environment variables, as default values have been removed for security.
 
 
 ## GCP Deployment Guide
@@ -168,22 +159,7 @@ gcloud components install gke-gcloud-auth-plugin
 gcloud services enable compute.googleapis.com container.googleapis.com artifactregistry.googleapis.com --project your-gcp-project-id
 ```
 
-### Required Variables
-- `langfuse_nextauth_url`: The public URL for Langfuse (e.g., `https://langfuse.yourdoman.com`).
-- `langfuse_nextauth_secret`: A secure random string for NextAuth.
-- `langfuse_salt`: A secure random string for encryption.
-- `langfuse_db_password`: Password for the Postgres/Clickhouse database.
 
-### Setting Variables
-Create a `prod.tfvars` file or use environment variables:
-
-```hcl
-# prod.tfvars
-langfuse_nextauth_url    = "https://langfuse.example.com"
-langfuse_nextauth_secret = "your-secure-secret"
-langfuse_salt            = "your-secure-salt"
-langfuse_db_password     = "your-secure-db-password"
-```
 
 To validate the production configuration:
 ```bash

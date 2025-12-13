@@ -1,8 +1,16 @@
-.PHONY: help up down deploy clean verify-cluster verify-vela verify-app serve langfuse minimal robots build-images validate init-ollama
+.PHONY: help up down deploy clean verify-cluster verify-app serve minimal robots build-images validate init-ollama
 
 TERRAFORM_DIR := terraform/environments/local
 TERRAFORM_PROD_DIR := terraform/environments/prod
 CONTAINER_RUNTIME ?= podman
+
+# App Config
+SERVICE_minimal := minimal-app
+PORT_minimal := 8000
+
+SERVICE_robots := robots-app
+PORT_robots := 7860
+
 
 # ... (omitted)
 
@@ -22,18 +30,19 @@ up:
 	@echo "Initializing and applying Terraform..."
 	export KIND_EXPERIMENTAL_PROVIDER=podman && cd $(TERRAFORM_DIR) && terraform init && terraform apply -auto-approve
 
-# Initialize Ollama by pulling the required model
+OLLAMA_MODEL := $(shell sed -n 's/^[[:space:]]*type[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' examples/robots/app/config.toml)
+
 init-ollama:
 	@echo "Initializing Ollama..."
 	@echo "Waiting for vLLM (Ollama) pod to be ready..."
 	@kubectl wait --for=condition=ready pod -l app=vllm -n genai --timeout=300s
-	@echo "Checking if model tinyllama exists..."
-	@kubectl exec -n genai deployment/vllm -- /bin/sh -c "ollama list | grep -q 'tinyllama' && echo 'Model exists, skipping pull.' || (echo 'Model not found or update needed, pulling...' && ollama pull tinyllama)"
+	@echo "Checking if model $(OLLAMA_MODEL) exists..."
+	@kubectl exec -n genai deployment/vllm -- /bin/sh -c "ollama list | grep -q '$(OLLAMA_MODEL)' && echo 'Model exists, skipping pull.' || (echo 'Model not found or update needed, pulling...' && ollama pull $(OLLAMA_MODEL))"
 
 deploy:
 	@echo "Deploying $(APP) application..."
 	@if [ "$(APP)" = "robots" ]; then $(MAKE) build-images; fi
-	kubectl apply -f $(YAML_$(APP))
+	kubectl apply -f examples/$(APP)/k8s/
 
 build-images:
 	@echo "Building Robots App and MCP Server images..."
@@ -51,30 +60,25 @@ build-images:
 verify-cluster:
 	kubectl cluster-info --context kind-helm4genai-cluster
 
-verify-vela:
-	kubectl get pods -n vela-system
+# verify-vela removed
 
 verify-app:
 	@echo "Waiting for $(APP) application to be ready..."
 	@echo "Waiting for pod to be created..."
-	@bash -c 'for i in {1..30}; do if kubectl get pod -l app.oam.dev/name=$(APP_NAME_$(APP)) --no-headers 2>/dev/null | grep -q .; then break; fi; echo "Waiting for pod..."; sleep 2; done'
-	kubectl wait --for=condition=Ready pod -l app.oam.dev/name=$(APP_NAME_$(APP)) --timeout=120s
-	kubectl get application $(APP_NAME_$(APP))
-	kubectl get pods -l app.oam.dev/name=$(APP_NAME_$(APP))
+	@bash -c 'for i in {1..30}; do if kubectl get pod -l app=$(APP)-app --no-headers 2>/dev/null | grep -q .; then break; fi; echo "Waiting for pod..."; sleep 2; done'
+	kubectl wait --for=condition=Ready pod -l app=$(APP)-app --timeout=120s
+	kubectl get deployment $(APP)-app
+	kubectl get pods -l app=$(APP)-app
 
 serve:
 	@echo "Forwarding port $(PORT_$(APP)) for $(APP) App. Open http://localhost:$(PORT_$(APP))."
 	@echo "Press Ctrl+C to stop."
 	kubectl port-forward service/$(SERVICE_$(APP)) $(PORT_$(APP)):$(PORT_$(APP))
 
-langfuse:
-	@echo "Forwarding port 3000 for Langfuse. Open http://localhost:3000."
-	@echo "Credentials: admin / admin (or as configured in Terraform)"
-	kubectl port-forward -n genai service/langfuse-web 3000:3000
+# langfuse removed
 
 minimal: down validate up
 	$(MAKE) deploy APP=minimal
-	$(MAKE) verify-vela
 	$(MAKE) verify-app APP=minimal
 	$(MAKE) serve APP=minimal
 
@@ -82,7 +86,6 @@ robots: down validate
 	$(MAKE) up
 	$(MAKE) init-ollama
 	$(MAKE) deploy APP=robots
-	$(MAKE) verify-vela
 	$(MAKE) verify-app APP=robots
 	$(MAKE) serve APP=robots
 
@@ -110,11 +113,11 @@ events:
 
 logs:
 	@echo "Fetching logs for $(APP) (last 50 lines)..."
-	@kubectl logs -l app.oam.dev/name=$(APP_NAME_$(APP)) --all-containers=true --tail=50 -f
+	@kubectl logs -l app=$(APP)-app --all-containers=true --tail=50 -f
 
 describe:
 	@echo "Describing pods for $(APP)..."
-	@kubectl describe pods -l app.oam.dev/name=$(APP_NAME_$(APP))
+	@kubectl describe pods -l app=$(APP)-app
 
 # Debugging helper to run an ephemeral debug pod
 debug-pod:
