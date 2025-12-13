@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: robots-app
+  labels:
+    app: robots-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 7860
+    targetPort: 7860
+  selector:
+    app: robots-app

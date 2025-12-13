@@ -8,12 +8,13 @@ Imagine you want to build a **City** (Kubernetes Cluster) where various **Busine
 
 - You need a **Contractor** (Terraform) to build the city infrastructure (roads, utilities).
 - You need an **Appliance Installer** (Helm) to install complex machinery (like power plants or large factories) that businesses need.
-- You need a simple **Business License Form** (KubeVela) so business owners can set up shop without knowing how to pour concrete or wire electricity.
+- You need an **Appliance Installer** (Helm) to install complex machines (like the AI model server) that your business needs.
+- You operate your **Business** (Application) using standard forms (Kubernetes Deployment/Service).
 
 In this project:
 1.  **Terraform** acts as the Contractor. It talks to your computer to create a "Kind" cluster (a mini-city on your laptop).
-2.  **Terraform** also hires the **Appliance Installer (Helm)** to install **KubeVela** (the management system) into that city.
-3.  **You** just fill out a simple form (`vela.yaml`) to run your app.
+2.  **Terraform** also hires the **Appliance Installer (Helm)** to install the GenAI Platform stack (like vLLM and MCP).
+3.  **You** use standard Kubernetes manifests (`deployment.yaml`, `service.yaml`) to run your app.
 
 ## 2. The Tools
 
@@ -29,9 +30,7 @@ Terraform allows you to define "Infrastructure as Code". Instead of manually cli
 Kubernetes applications are made of many files (deployments, services, configs). Helm packages them all into one "Chart" so you can install a complex app with one command.
 - **Learn More**: [Helm Quickstart](https://helm.sh/docs/intro/quickstart/)
 
-### [KubeVela](https://kubevela.io/docs/) - *The Easy Button*
-KubeVela sits on top of Kubernetes. It lets you define an application (like "Run this Docker image on port 80") without writing the 50 lines of complex Kubernetes YAML usually required.
-- **Learn More**: [KubeVela Core Concepts](https://kubevela.io/docs/quick-start)
+
 
 ### [Kind](https://kind.sigs.k8s.io/) - *The Simulator*
 Kind (Kubernetes IN Docker) is a tool for running local Kubernetes clusters using Docker container "nodes". It's perfect for testing and learning.
@@ -57,7 +56,7 @@ terraform/
 
 ### Why this structure?
 In a real company, you don't want to copy-paste code between Dev and Prod. You want them to be identical twins, except one is smaller.
-- **Modules (`terraform/modules`)**: This is the "Blueprint". It says "Every city must have KubeVela installed". It doesn't know *where* it's being built.
+- **Modules (`terraform/modules`)**: This is the "Blueprint". It says "Every city must have the GenAI Platform installed". It doesn't know *where* it's being built.
 - **Environments (`terraform/environments`)**: This is the "Site Plan". 
     - `local/main.tf` says: "Build the Blueprint on my laptop using Kind."
     - `prod/main.tf` says: "Build the Blueprint on AWS using 100 servers."
@@ -78,7 +77,7 @@ This is the entry point for your local setup.
     This line is magic. It says "Go look at the `platform` folder and do whatever is written there."
 
 #### `modules/platform/main.tf`
-This contains the `helm_release`. Because it's in a module, we can reuse it. If we add "Prometheus" (monitoring) to this file later, BOTH Local and Prod get it automatically!
+This contains the `helm_release` resources for the platform (like MCP). Because it's in a module, we can reuse it. If we add "Prometheus" (monitoring) to this file later, BOTH Local and Prod get it automatically!
 
 ### Why Terraform instead of just Helm YAMLs?
 
@@ -98,18 +97,20 @@ graph TD
     subgraph "Terraform Execution"
         TF -->|1. Creates| Cluster["Kind Cluster"]
         TF -->|"Passes Cluster Info"| Module["Platform Module"]
-        Module -->|2. Uses Helm Provider| Helm["Helm Release"]
+        Module -->|2. Uses Helm Provider| Helm["Helm Release (MCP)"]
     end
     
-    Helm -->|Installs| Vela[KubeVela]
-    Cluster -->|Hosts| Vela
+    Helm -->|Installs| MCP[MCP Server]
+    Cluster -->|Hosts| MCP
     
     subgraph "Application Deployment"
-        Vela -.->|Manages| App["Your App"]
+        User -->|Runs| kubectl[kubectl apply]
+        kubectl -->|Deploys| App["Your App"]
+        Cluster -->|Hosts| App
     end
 ```
 
-By wrapping the complexity in Terraform and KubeVela, you get a robust, reproducible environment for building GenAI apps without getting lost in the weeds of low-level Kubernetes configuration.
+By wrapping the infrastructure complexity in Terraform but keeping application deployment standard, you get a robust environment while learning the industry-standard way to deploy apps.
 
 ## 5. Deep Dive: Configuration Explained
 
@@ -134,17 +135,11 @@ provisioner "local-exec" {
 ```
 1.  `podman save`: Takes the image you already built locally and wraps it in a `.tar` file.
 2.  `kind load`: Throws that `.tar` file directly into the Kind cluster node.
-Now, when Helm asks for `my-image:latest`, Kind says "I already have that!" and skips the download.
+Now, when Kubernetes asks for `my-image:latest`, Kind says "I already have that!" and skips the download.
 
 ### Helm Configuration Choices (`modules/platform/main.tf`)
 
-#### 1. Repository vs. Local Path
-For **KubeVela**, we use a public URL:
-```hcl
-repository = "https://kubevela.io/charts"
-```
-This is like downloading an app from the App Store.
-
+#### 1. Local Path for MCP
 For **MCP**, we point to a folder on your disk:
 ```hcl
 chart = "${path.module}/charts/mcp"
@@ -208,7 +203,7 @@ wait_for_rollout = false
 **Why?** Since we are using local images that might be loaded *after* Terraform runs (or in parallel), we don't want Terraform to crash if the Pod doesn't start immediately. We tell Terraform "Just create the rule, don't wait for the Pod to be green." This prevents Terraform from timing out during local development.
 
 ### Dynamic Toggles (`count`)
-We want to be able to turn off the heavy AI stuff if we just want to test KubeVela.
+We want to be able to turn off the AI stuff if we just want a minimal cluster.
 ```hcl
 resource "helm_release" "mcp" {
   count = var.genai_enabled ? 1 : 0
@@ -232,5 +227,4 @@ resource "helm_release" "mcp" {
     - [Illustrated Children's Guide to Kubernetes](https://www.cncf.io/phippy-goes-to-the-zoo/the-illustrated-childrens-guide-to-kubernetes/) (Great for concepts!)
 - **Helm**:
     - [The Helm Docs](https://helm.sh/docs/)
-- **KubeVela**:
-    - [KubeVela Documentation](https://kubevela.io/)
+

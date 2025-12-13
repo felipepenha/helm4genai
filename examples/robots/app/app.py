@@ -88,12 +88,6 @@ def analyze_robots_txt(url):
         # Add actual user query
         messages.append({"role": "user", "content": robots_content})
         
-        # Map specific models if needed, or use a default compatible with the deployed vLLM
-        # config.toml says "gpt-oss:20b", but we might be running "facebook/opt-125m"
-        # We'll rely on the deployed model or a generic alias if vLLM supports it.
-        # Often vLLM uses the model name it launched with.
-        # For simplicity in this demo, we'll try to fetch the model list or just use a placeholder
-        # vLLM is permissive with model names in OpenAI API usually if only one is served.
         model_name = "facebook/opt-125m" # Default fallback
         try:
              models = client.models.list()

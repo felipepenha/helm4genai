@@ -26,7 +26,7 @@ module "gke" {
   node_pools = [
     {
       name                      = "default-node-pool"
-      machine_type              = "e2-standard-4" # Upgraded for Langfuse/Clickhouse memory needs
+      machine_type              = "e2-standard-2" # Sufficient for system components and simple workloads
       node_locations            = var.zone
       min_count                 = 1
       max_count                 = 2
@@ -86,29 +86,12 @@ module "platform" {
   source = "../../modules/platform"
   
   # High Availability for Production
-  vela_replica_count       = 3
   genai_enabled            = true
-  langfuse_nextauth_url    = var.langfuse_nextauth_url
-  langfuse_nextauth_secret = var.langfuse_nextauth_secret
-  langfuse_salt            = var.langfuse_salt
-  langfuse_db_password     = var.langfuse_db_password
   
   mcp_image_repository     = var.mcp_image_repository
   mcp_image_tag            = var.mcp_image_tag
   
   depends_on = [module.gke]
-
-  # Production/HA Configuration
-  clickhouse_replica_count        = 3
-  clickhouse_background_pool_size = 512 # Default value
-  clickhouse_resources = {
-    limits = {
-      memory = "12Gi"
-    }
-    requests = {
-      memory = "4Gi"
-    }
-  }
 
   # Production vLLM Configuration
   vllm_image             = "vllm/vllm-openai:latest"

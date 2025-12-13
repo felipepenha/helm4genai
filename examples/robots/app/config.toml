@@ -1,7 +1,7 @@
 [model]
 provider = "local"
-type = "tinyllama"
-max_tokens = 2048
+type = "deepseek-r1:1.5b"
+max_tokens = 10000
 temperature = 0.0
 system_message = """
 Situation: You are analyzing a raw `robots.txt` file to extract strategic business intelligence regarding the site's stance on AI, SEO, and Data Privacy.
@@ -16,7 +16,7 @@ Task:
 
 Output Format: 
 - Produce **ONLY** a single Markdown table.
-- Title: "**🤖 Robots.txt Analysis & LLM Block Stats**"
+- Title: "# `robots.txt` Analysis Report"
 - Columns: **Category**, **Statistic / Count**, **Insight**
 - The table must include a specific section at the bottom for "**LLM & AI Bot Block Status**".
 

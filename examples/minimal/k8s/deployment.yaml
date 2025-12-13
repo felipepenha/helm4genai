@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minimal-app
+  labels:
+    app: minimal-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minimal-app
+  template:
+    metadata:
+      labels:
+        app: minimal-app
+    spec:
+      containers:
+      - name: express-server
+        image: oamdev/hello-world
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
