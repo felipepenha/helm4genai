@@ -1,5 +1,56 @@
+[project]
+name = "robots-app"
+version = "0.1.0"
+description = "Robots.txt Analysis App"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "baml-py==0.214.0",
+    "gradio>=4.44.1",
+    "openai>=2.11.0",
+    "requests>=2.32.5",
+    "tomli>=2.3.0",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = ["baml-cli>=0.1.0"]
+
+[tool.black]
+# Exclude baml_client anywhere (no leading /)
+exclude = '''
+(
+  \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | baml_client
+)
+'''
+
+[tool.isort]
+profile = "black"
+# Use skip_glob to catch nested directories easily
+skip_glob = ["**/baml_client", "**/.venv"]
+
+[tool.setuptools]
+packages = ["app", "mcp_server"]
+
 [tool.mypy]
 ignore_missing_imports = false
+# Use a single regex string for exclude, matching baml_client anywhere
+exclude = "(baml_client|mcp_server|\\.venv)"
 
 [[tool.mypy.overrides]]
 module = "gradio"
@@ -8,3 +59,11 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "requests"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "baml_client.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "app.baml_client.*"
+ignore_errors = true

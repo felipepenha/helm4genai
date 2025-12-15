@@ -48,13 +48,31 @@ sequenceDiagram
 
 ## Usage
 
+## Usage
+
 1.  **Initialize Platform**:
     ```bash
     make up
     ```
 
-2.  **Deploy Agent**:
+2.  **Generate BAML Client**:
     ```bash
+    cd examples/robots
+    make generate
+    ```
+    *Note: This uses `uv` to generate the Python client from `baml_src/robots.baml`.*
+
+3.  **Run Locally (No Docker)**:
+    ```bash
+    make run-local
+    ```
+    *This runs the app natively using `uv`, defaulting to a local Ollama instance at `http://localhost:11434/v1`. Ideal for testing with large local models.*
+    * **Note**: This mode bypasses the MCP server (`FETCH_MODE=direct`) to simplify local setup.*
+    *The app will be available at http://localhost:7860.*
+
+4.  **Deploy Agent (Production-like)**:
+    ```bash
+    cd ../.. # back to root
     make robots
     ```
     *Note: This builds the Docker images (using Podman/Docker) and deploys them to the local Kind cluster via Helm and KubeVela.*

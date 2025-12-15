@@ -23,3 +23,9 @@ spec:
         env:
         - name: MCP_SERVER_URL
           value: "http://mcp-mcp-server.genai.svc.cluster.local:8080"
+        - name: VLLM_API_URL
+          value: "http://vllm.genai.svc.cluster.local:8000/v1"
+        - name: VLLM_API_KEY
+          value: "ollama"
+        - name: OLLAMA_MODEL
+          value: "deepseek-r1:1.5b"

@@ -112,7 +112,34 @@ graph TD
 
 By wrapping the infrastructure complexity in Terraform but keeping application deployment standard, you get a robust environment while learning the industry-standard way to deploy apps.
 
-## 5. Deep Dive: Configuration Explained
+## 5. Structured Output with BAML
+
+Working with LLMs often involves "Prompt Engineering" to get them to output specific formats like JSON. This is fragile and prone to breaking.
+
+**BAML (Better Also Make Language?)** is a domain-specific language that solves this by strictly defining the *interface* between your code and the LLM.
+
+### Why BAML?
+-   **Type Safety**: Instead of hoping the LLM returns a field named `count`, you define a `class` and BAML ensures you get an object with that field.
+-   **Robustness**: BAML handles the messy part of parsing raw strings into structured objects, even if the LLM adds chatter.
+-   **Separation of Concerns**: Your Python code stays clean (`b.AnalyzeRobotsTxt(content)`), while the prompt logic lives in `.baml` files.
+
+### The Workflow
+1.  **Define Schema**: Create a `.baml` file defining your data models.
+    ```baml
+    class RobotsAnalysis {
+      unique_directives_count int
+      insight string
+    }
+    ```
+2.  **Generate Client**: Run `uv run baml-cli generate`. This creates Python code that perfectly matches your schema.
+3.  **Call Function**:
+    ```python
+    from baml_client import b
+    analysis = b.AnalyzeRobotsTxt(raw_text)
+    print(analysis.unique_directives_count) # Validated integer!
+    ```
+
+## 6. Deep Dive: Configuration Explained
 
 This section details the specific choices we made in the Terraform and Helm configurations, so you can do it yourself in the future.
 

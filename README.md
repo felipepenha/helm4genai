@@ -4,6 +4,7 @@ Helm4GenAI is a boilerplate project designed to simplify the deployment of Gener
 
 ## Prerequisites
 
+- **uv**
 - **Terraform**
 - **Helm**
 - **Kind**
@@ -21,6 +22,30 @@ brew install hashicorp/tap/terraform helm kind podman
 ## Quick Start
 The project includes a `Makefile` to automate the infrastructure setup and application deployment.
 
+### ⚠️ BAML Configuration
+Before running or deploying the Robots agent, you can customize the LLM settings in `examples/robots/baml_src/robots.baml`. For example, you can define a client like this:
+
+```baml
+client LocalLLMClient {
+  provider openai
+  options {
+    base_url env.VLLM_API_URL
+    api_key env.VLLM_API_KEY
+    model env.OLLAMA_MODEL
+    temperature 0.0
+    max_tokens 10000
+  }
+}
+function AnalyzeRobotsTxt(content: string) -> RobotsSummary {
+  client LocalLLMClient
+  prompt #"
+```
+
+After making any changes to `.baml` files, you **must** regenerate the client code:
+```bash
+make generate-baml
+```
+This requires `uv` to be installed.
 ### ⚡️ Super Quick Start
 To set up, deploy, and expose the app in one command:
 ```bash

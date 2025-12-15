@@ -1,4 +1,7 @@
-.PHONY: help up down deploy clean verify-cluster verify-app serve minimal robots build-images validate init-ollama
+.PHONY: help up down deploy clean verify-cluster verify-app serve minimal robots build-images validate init-ollama generate-baml
+
+generate-baml:
+	cd examples/robots && $(MAKE) generate
 
 TERRAFORM_DIR := terraform/environments/local
 TERRAFORM_PROD_DIR := terraform/environments/prod
@@ -30,7 +33,7 @@ up:
 	@echo "Initializing and applying Terraform..."
 	export KIND_EXPERIMENTAL_PROVIDER=podman && cd $(TERRAFORM_DIR) && terraform init && terraform apply -auto-approve
 
-OLLAMA_MODEL := $(shell sed -n 's/^[[:space:]]*type[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' examples/robots/app/config.toml)
+OLLAMA_MODEL := $(shell sed -n 's/^[[:space:]]*model[[:space:]]*"\([^"]*\)".*/\1/p' examples/robots/baml_src/robots.baml)
 
 init-ollama:
 	@echo "Initializing Ollama..."
@@ -82,7 +85,7 @@ minimal: down validate up
 	$(MAKE) verify-app APP=minimal
 	$(MAKE) serve APP=minimal
 
-robots: down validate
+robots: down validate generate-baml
 	$(MAKE) up
 	$(MAKE) init-ollama
 	$(MAKE) deploy APP=robots

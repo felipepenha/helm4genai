@@ -25,3 +25,5 @@ helm4genai-cluster-config
 
 # tar files
 *.tar
+
+*.egg-info
